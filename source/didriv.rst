@@ -32,7 +32,7 @@ Calling Tree
     c *       -di_calc_e33                                          *
     c *       -di_calc_curvature                                    *
     c *            -di_calc_coefficients                            *
-    c *       -difrar.f                                             *
+    c *       -difrar.f (di_front_q_area)                           *
     c *            -di1dsf.f                                        *
     c *       -di_node_props_setup                                  *
     c *            -di_node_props                                   *
@@ -42,8 +42,8 @@ Calling Tree
     c *       -di_fgm_setup                                         *
     c *            -di_nod_vals                                     *
     c *                 -di_extrap_to_nodes                         *
-    c *                      -ndpts1                                *
-    c *                      -oulgf                                 *
+    c *                      -ndpts1.f                              *
+    c *                      -oulg1.f (oulgf)                       *
     c *       -diexp4.f                                             *
     c *            -diexp4                                          *
     c *            -diexp13                                         *
@@ -98,6 +98,10 @@ call ``distup.f``::
     c *                                                             *
     c ***************************************************************
 
+Output:
+
+    ``j_data.q_values`` REAL (:) ALLOCATABLE SAVE
+
 7. allocate a vector of logicals and assign .true. for each element connected to a crack front node.
 
 call ``di_cf_elem``::
@@ -114,6 +118,10 @@ call ``di_cf_elem``::
     c *                                                                    *
     c **********************************************************************
 
+Output:
+
+    ``j_data.crack_front_elem`` LOGICAL (:) ALLOCATABLE SAVE
+
 8. at point on front where integral is being computed, build the global->crack rotation matrix. gather coordinates and displacements of crack-front nodes, and rotate them to local crack-front system.
 
 call ``dimrot.f``::
@@ -123,6 +131,11 @@ call ``dimrot.f``::
     c * dimrot - compute the 3x3 global -> crack front local rotation      *
     c *                                                                    *
     c **********************************************************************
+
+Output:
+
+    ``j_data.domain_origin`` INTEGER
+    ``j_data.domain_rot(3,3)`` DOUBLE PRECISION (3,3)
 
 8c. calculate strain e33 at node at domain origin. this is for T-stress calculations using the interaction integral
 
@@ -138,7 +151,7 @@ call ``di_calc_e33``::
 
 8c. calculate properties of a curve passing through the front nodes. these will be used to compute distance 'r' from integration points to a curved crack front.
 
-call ``di_calc_curvature``::
+call ``di_calc_curvature`` from ::
 
     c *******************************************************************
     c *                                                                 *
@@ -160,7 +173,7 @@ call ``difrar.f``::
 
 10. set logical flags to indicate if the nodal velocities and accelerations are all zero for this load step. if so, some later computations can be skipped.
 
-11. Build the node average value of thermal expansion coefficient. for temperature-dependent material properties, also build the node average value of young's modulus and poisson's ratio. for temperature-independent material properties, values of e and nu are obtained within dicmj.f nodal properties are needed for domain integral computations to compute spatial derivatives within the domain.
+11. Build the node average value of thermal expansion coefficient. for temperature-dependent material properties, also build the node average value of young's modulus and poisson's ratio. for temperature-independent material properties, values of e and nu are obtained within dicmj.f. nodal properties are needed for domain integral computations to compute spatial derivatives within the domain.
 
 call ``di_node_props_setup``::
 

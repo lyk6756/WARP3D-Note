@@ -11,6 +11,7 @@ call ``dimrot( c, crdmap, u, dstmap, debug_driver, out )``
 Output:
 
     ``j_data.domain_origin`` INTEGER
+
     ``j_data.domain_rot(3,3)`` DOUBLE PRECISION (3,3)
 
 Calling Tree
@@ -116,3 +117,13 @@ Output:
     c                         node. compute two unit tangents, average
     c                         components, then restore unit length.
 
+Call ``di1dsf.f``
+------------------
+
+calculates shape function values and derivatives for 1-dimension
+
+Output:
+
+    ``sf(3)`` - shape function values
+
+    ``dsf(3)`` - derivatives of shape function

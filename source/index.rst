@@ -13,6 +13,9 @@ Yukun's WARP3D(Version 17.8.7) Reference Note
    didriv
    distup
    dimrot
+   di_calc_curvature
+   difrar
+   di_node_props_setup
 
 Reference:
 
