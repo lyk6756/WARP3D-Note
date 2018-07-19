@@ -46,11 +46,19 @@ Calling Tree
     c *                      -oulg1.f (oulgf)                       *
     c *       -diexp4.f                                             *
     c *            -diexp4                                          *
+    c *                 -diadit                                     *
+    c *                 -dibmck                                     *
     c *            -diexp13                                         *
+    c *                 -diadit                                     *
+    c *                 -dibmck                                     *
+    c *                 -digete                                     *
     c *       -dicmj.f                                              *
-    c *            -dielem_a.f                                      *
-    c *            -dielem_b.f                                      *
-    c *            -dielem_c.f                                      *
+    c *            -di_trans_nodvals                                *
+    c *            -vec_ops (zero_vector.f)                         *
+    c *            -dielem                                          *
+    c *                 -dielem_a.f                                 *
+    c *                 -dielem_b.f                                 *
+    c *                 -dielem_c.f                                 *
     c *       -di_write_std_out                                     *
     c *       -di_write_packets                                     *
     c *                                                             *

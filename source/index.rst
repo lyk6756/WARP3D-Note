@@ -16,6 +16,9 @@ Yukun's WARP3D(Version 17.8.7) Reference Note
    di_calc_curvature
    difrar
    di_node_props_setup
+   di_fgm_setup
+   diexp4
+   dicmj
 
 Reference:
 
