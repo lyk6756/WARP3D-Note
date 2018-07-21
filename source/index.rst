@@ -19,6 +19,7 @@ Yukun's WARP3D(Version 17.8.7) Reference Note
    di_fgm_setup
    diexp4
    dicmj
+   dielem
 
 Reference:
 
