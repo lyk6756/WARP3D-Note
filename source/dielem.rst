@@ -162,8 +162,8 @@ Inputs
 Outputs
 -------
 
-* ``e_jresults``: ``e_jresults``
-* ``e_iresults``: ``e_iresults``
+* ``e_jresults``: ``e_jresults(8)``
+* ``e_iresults``: ``e_iresults(8,8)``
 
 Calling Tree
 -------------
@@ -191,9 +191,10 @@ Calling Tree
     c *                                                              *
     c *    (dielem_b.f)                                              *
     c *           -di_calc_r_theta                                   *
+    c *               -di_calc_distance                              *
     c *           -di_calc_constitutive                              *
     c *           -di_calc_aux_fields_k                              *
-    c *           -di_calu_aux_fields_t                              *
+    c *           -di_calc_aux_fields_t                              *
     c *           -di_calc_i_terms                                   *
     c *                                                              *
     c *    (dielem_c.f)                                              *
@@ -257,6 +258,8 @@ Procedure
 
 4. rotate nodal coordinates, displacements, velocities and accelerations to crack front normal coordinate system.
 
+call ``dielrv``: Domain Integral ELement Rotate Vector
+
 ::
 
     call dielrv( coord, cdispl, cvel, caccel, edispl, evel, eaccel,
@@ -267,7 +270,13 @@ Procedure
     c *                                                                 *
     c *******************************************************************
 
+* ``cdispl(3,20)`` nodal displacements at crack x-y-z
+* ``cvel(3,20)`` nodal velocities at crack x-y-z
+* ``caccel(3,20)`` nodal accelerations at crack x-y-z
+
 5. modify the nodal q-values to reflect linear interpolations for 20, 15, 12-node elements.
+
+call ``dieliq``: Domain Integral ELement Interpolate Q-values
 
 ::
 
@@ -314,6 +323,8 @@ Procedure
 
 6b. coordinate jacobian, it's inverse, and determinant.
 
+call ``dielcj``: Domain Integral ELement Compute Jacobian
+
 ::
 
     call dielcj( dsf(1,1,ptno), coord, nnode, jacob(1,1,ptno),
@@ -324,7 +335,13 @@ Procedure
     c *                                                                 *
     c *******************************************************************
 
+* ``jacob(3,3,28)`` coordinate jacobian matrix at integration points
+* ``jacobi(3,3,28)`` coordinate inverse jacobian matrix at integration points
+* ``detvol(28)`` determinant of jacobian matrix at integration points
+
 7. rotate stresses and strains to crack-front coordinates at all gauss points. get the stress work density from warp results.
+
+call ``dielrt``: Domain Integral ELement Rotate Tensor
 
 ::
 
@@ -338,12 +355,17 @@ Procedure
     c *                                                                 *
     c *******************************************************************
 
+* ``csig(10,27)``: stress in crack-front coordinates at gauss points
+* ``ceps_gp(9,27)``: strain in crack-front coordinates at gauss points
+
 8. rotate strains to crack-front coordinates at all nodes.
 
 ::
 
     call dielrt( enode, rotate, strains(1,enode), ceps_n(1,enode),
      &        3, iout, debug )
+
+* ``ceps_n(9,20)``: nodal strain in crack-front coordinates
 
 9. process temperature (inital) strains if required. rotate the thermal expansion coefficients from from global->crack coordinates in case they are anisotropic. elem_alpha(1:6) in global is replaced by elem_alpha(1:6) in crack. rotate values that are constant over the element (elem_alpha) and values at each node of the element (enode_alpha_ij). (nodal values enable computation of the x1 derivative of the alpha_ij term in J.) for isotropic CTEs this is some unnecessary work.
 
@@ -397,6 +419,11 @@ Procedure
 ::
 
     call shapef( etype, xsi, eta, zeta, sf )
+
+call ``dielav``: Domain Integral ELement gAuss point Values
+
+::
+
     call dielav( sf, evel, eaccel, point_velocity, point_accel_x,
      &               point_accel_y, point_accel_z, qvals, point_q,
      &               nnode, point_temp, e_node_temps, elem_alpha,
@@ -404,8 +431,34 @@ Procedure
      &               ym_nodes, nu_nodes, point_ym, point_nu, fgm_e,
      &               fgm_nu, coord, point_x, point_y, point_z,
      &               seg_curves_flag, iout )
+    c *******************************************************************
+    c *                                                                 *
+    c *   get q, velocity, accelerations, temperature and alpha at      *
+    c *   gauss point.                                                  *
+    c *                                                                 *
+    c *******************************************************************
+
+* ``point_q``: q-valuse at gauss point
+* ``point_velocity``: total velocity at gauss point
+* ``kin_energy``: kinetic energy at gauss point
+* ``point_accel_x, point_accel_y, point_accel_z``: accelerations at gauss point
+* ``point_temp``: temperature at gauss point
+* ``elem_alpha(6)``: alpha at gauss point
+* ``point_ym``: young's modulus at gauss point
+* ``point_nu``: poisson's ratio at gauss point
+* ``point_x, point_y, point_z``: coordinates of gauss point in the local crack-front system
 
 3. for this integration point, compute displacement derivatives, q-function derivatives and temperature derivative in crack coordinate system. strains will be used in the order eps11, eps22, eps33, eps12, eps23, eps13
+
+* ``dux, dvx, dwx``: displacement derivatives with respect to x in crack coordinate system
+* ``dqx, dqy, dqz``: q-function derivatives in crack coordinate system
+* ``dtx``: temperature derivative with respect to x in crack coordinate system
+* ``dalpha_x1(6)``: alpha derivative with respect to x in crack coordinate system
+* ``dswd_x1``: stress work density derivative with respect to x in crack coordinate system
+* ``dstrain_x1(9)``: nodal strain derivative with respect to x in crack coordinate system
+* ``csig_dstrain_x1``:
+* ``de_x1``: young's modulus derivative with respect to x in crack coordinate system
+* ``dnu_x1``: poisson's ratio derivative with respect to x in crack coordinate system
 
 4. call routines to compute domain-integral terms for current integration point.
 
@@ -449,3 +502,149 @@ Procedure
 
 * save edi values in result vectors
 
+Compute i terms
+------------------
+
+1. call ``di_calc_r_theta``: Domain Integral CALCulate Radius and angle THETA
+
+    * for straight element edges:
+
+    compute distance from integration point to the closest line that connects two adjacent front nodes.
+
+    compute angle between integration point, line connecting front nodes, and projection of integration point onto crack plane.
+
+    * for curved element edges:
+
+    compute distance from integration point to the curve fitted through adjacent front nodes.
+
+    compute angle between integration point, curve, and projection of integration point onto crack plane.
+
+::
+
+    call di_calc_r_theta( 2, front_nodes, num_front_nodes,
+     &                        front_coords, domain_type, domain_origin,
+     &                        front_order, point_x, point_y, point_z,
+     &                        elemno, ptno, r, t, crack_curvature,
+     &                        debug, iout )
+    c ****************************************************************
+    c                                                                *
+    c subroutine to calculate radius "r", and angle "theta" of       *
+    c a single point, measured in polar coordinates in the           *
+    c local crack-front system.                                      *
+    c                                                                *
+    c ****************************************************************
+
+* ``r``: radius "r" in polar coordinates in the local crack-front system
+* ``t``: angle "theta" in polar coordinates in the local crack-front system
+
+2. call ``di_calc_constitutive``: Domain Integral CALCulate CONSTITUTIVE tensor components
+
+::
+
+    call di_calc_constitutive( dcijkl_x1, sijkl, dsijkl_x1,
+     &                             point_ym, point_nu, de_x1, dnu_x1,
+     &                             elemno, debug, iout )
+    c***************************************************************
+    c                                                              *
+    c    subroutine to calculate constitutive tensors for          *
+    c    interaction integral                                      *
+    c                                                              *
+    c***************************************************************
+
+* ``dcijkl_x1(3)``: constitutive tensor derivative
+* ``sijkl(3)``: compliance tensor
+* ``dsijkl_x1(3)``: compliance tensor derivative
+
+::
+
+    c             the three non-zero components of cijkl are:
+    c                (1) lambda + 2*mu = e(1-nu)/((1+nu)(1-2nu))
+    c                    d(1)/de  = (1-nu)/((1+nu)(1-2nu))
+    c                    d(1)/dnu = 2e*nu(2-nu)/((1+nu)^2*(1-2nu)^2)
+    c                (2) lambda = e*nu/((1+nu)(1-2nu))
+    c                    d(2)/de  = nu/((1+nu)(1-2nu))
+    c                    d(2)/dnu = e(1+2nu^2)/((1+nu)^2*(1-2nu)^2)
+    c                (3) 2*mu = e/(1+nu)
+    c                    d(3)/de  = 1/(1+nu)
+    c                    d(3)/dnu = -e/(1+nu)^2
+    c
+    c             the three non-zero components of sijkl are:
+    c                (1) d(1) = 1/e
+    c                    d(1)/de = -1/e^2       d(1)/dnu = 0
+    c                (2) d(2) = -nu/e
+    c                    d(2)/de = nu/e^2       d(2)/dnu = -1/e
+    c                (3) d(3) = (1+nu)/e
+    c                    d(3)/de = -(1+nu)/e^2  d(3)/dnu = 1/e
+
+3. call ``di_calc_aux_fields_k``: Domain Integral CALCulate AUXiliary FIELDS for stress intensity factors K
+
+::
+
+    call di_calc_aux_fields_k( elemno, ptno, r, t, ym_front_node,
+     &                             nu_front_node, dcijkl_x1, sijkl,
+     &                             dsijkl_x1, aux_stress,
+     &                             aux_strain, daux_strain_x1,
+     &                             du11_aux,  du21_aux,  du31_aux,
+     &                             du111_aux, du112_aux, du113_aux,
+     &                             du211_aux, du212_aux, du213_aux,
+     &                             du311_aux, du312_aux, du313_aux,
+     &                             iout )
+    c***************************************************************
+    c                                                              *
+    c subroutine to calculate auxiliary stresses and displacements *
+    c at element integration points using the expressions obtained *
+    c by Williams: On the stress distribution at the base of a     *
+    c stationary crack. Journal of Applied Mechanics 24, 109-114,  *
+    c 1957.                                                        *
+    c                                                              *
+    c***************************************************************
+
+* ``aux_stress(9,8)``: auxiliary stresses at integration point
+* ``aux_strain(9,8)``: auxiliary strains at integration point
+* ``daux_strain_x1(9,8)``: auxiliary strains derivatives
+* ``du111_aux(8),du112_aux(8),du113_aux(8),du211_aux(8)``, ``du212_aux(8),du213_aux(8),du311_aux(8),du312_aux(8),du313_aux(8)``: second derivatives of displacement (uj,1i)
+
+4. call ``di_calc_aux_fields_t``: Domain Integral CALCulate AUXiliary FIELDS for T-stresses
+
+::
+
+    call di_calc_aux_fields_t( elemno, ptno, r, t, ym_front_node,
+     &                             nu_front_node, dcijkl_x1, sijkl,
+     &                             dsijkl_x1, aux_stress,
+     &                             aux_strain, daux_strain_x1,
+     &                             du11_aux,  du21_aux,  du31_aux,
+     &                             du111_aux, du112_aux, du113_aux,
+     &                             du211_aux, du212_aux, du213_aux,
+     &                             du311_aux, du312_aux, du313_aux,
+     &                             iout )
+    c***************************************************************
+    c                                                              *
+    c subroutine to calculate auxiliary stresses and displacements *
+    c at integration points for t-stresses using the expressions   *
+    c obtained by Michell for a point load on a straight crack:    *
+    c (see Timoshenko and Goodier, Theory of Elasticity p. 110.,   *
+    c  eq. 72 for stress sigma_r.)                                 *
+    c                                                              *
+    c***************************************************************
+
+5. call ``di_calc_i_terms``: Domain Integral CALCulate Interaction integral terms for stress intensity factors
+
+::
+
+    call di_calc_i_terms( ptno, dqx, dqy, dqz, dux, dvx, dwx,
+     &                        dtx, csig, aux_stress, ceps_gp,
+     &                        aux_strain, dstrain_x1,
+     &                        daux_strain_x1, dcijkl_x1,
+     &                        du11_aux,  du21_aux,  du31_aux,
+     &                        du111_aux, du211_aux, du311_aux,
+     &                        du112_aux, du212_aux, du312_aux,
+     &                        du113_aux, du213_aux, du313_aux,
+     &                        process_temperatures, elem_alpha,
+     &                        dalpha_x1, point_temp, point_q, weight,
+     &                        elemno, fgm_e, fgm_nu, iterm,
+     &                        iout, debug)
+    c***************************************************************
+    c                                                              *
+    c    subroutine to calculate terms of i-integral               *
+    c                                                              *
+    c***************************************************************
