@@ -20,6 +20,8 @@ Yukun's WARP3D(Version 17.8.7) Reference Note
    diexp4
    dicmj
    dielem
+   props
+   matprp
 
 Reference:
 

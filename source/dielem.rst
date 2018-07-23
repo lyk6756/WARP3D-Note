@@ -602,7 +602,7 @@ Compute i terms
 * ``aux_stress(9,8)``: auxiliary stresses at integration point
 * ``aux_strain(9,8)``: auxiliary strains at integration point
 * ``daux_strain_x1(9,8)``: auxiliary strains derivatives
-* ``du111_aux(8),du112_aux(8),du113_aux(8),du211_aux(8)``, ``du212_aux(8),du213_aux(8),du311_aux(8),du312_aux(8),du313_aux(8)``: second derivatives of displacement (uj,1i)
+* ``du111_aux(8),du112_aux(8),du113_aux(8)``, ``du211_aux(8),du212_aux(8),du213_aux(8)``, ``du311_aux(8),du312_aux(8),du313_aux(8)``: second derivatives of displacement (uj,1i)
 
 4. call ``di_calc_aux_fields_t``: Domain Integral CALCulate AUXiliary FIELDS for T-stresses
 
