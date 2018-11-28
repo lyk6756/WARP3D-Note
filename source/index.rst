@@ -10,6 +10,8 @@ Yukun's WARP3D(Version 17.8.7) Reference Note
    :maxdepth: 1
    :caption: Contents:
 
+   didriv17.9.2
+   dicmj17.9.2
    didriv
    distup
    dimrot
