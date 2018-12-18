@@ -212,8 +212,6 @@ call ``di_node_props_setup``::
 12.
 ~~~~~
 
-Build the nodal averages of strain energy density (stress work density) and strains. These terms are used to calculate the derivative of the strain energy density, which appears in the domain integral when material properties vary spatially (e.g. fgms). The nodal values calculated in di_fgm_setup will be used to compute their spatial derivatives at integration points.
-
 Needed when FGM nodal properties are actually used for elements in model, when the user has defined an initial state, or temperature dependent stress-strain curves are used (effectively makes the material an FGM), or input initial stresses.
 
 Needed for I integrals with temperatures in model.
@@ -224,7 +222,9 @@ Build the nodal averages of strain energy density (W) and nodal values of displa
 
 当1）FGM节点属性实际用于模型中的单元，2）用户定义了初始状态，3）使用温度相关的应力-应变曲线（有效地使材料成为FGM），4）输入初始应力时，需要需要执行此操作。
 
-模型中有温度时需要执行此操作。即使不需要执行，代码也会构建小的虚拟数组以满足检查要求。
+模型中有温度时需要执行此操作。
+
+即使不需要执行，代码也会构建小的虚拟数组以满足检查要求。
 
 在t_n处相对于坐标t=0处建立应变能密度（W）的节点平均值和位移梯度（3×3）的节点值。这些项用于计算应变能密度相对于裂尖局部坐标X的导数和位移梯度相对于裂尖局部坐标X的导数。这两个量在积分点处的值都将用在J（7）和J（8）中。
 
