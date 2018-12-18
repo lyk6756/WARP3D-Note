@@ -219,6 +219,7 @@ Needed when FGM nodal properties are actually used for elements in model, when t
 Needed for I integrals with temperatures in model.
 
 Even if not needed, the code builds small, dummy arrays to satisfy checks.
+
 Build the nodal averages of strain energy density (W) and nodal values of displacement gradient (3x3) at t_n relative to coordinates at t=0. These terms are used to calculate the derivative of W wrt crack local X and derivatives of the gradients wrt crack local X -- both at integration points for J(7) and J(8).
 
 当1）FGM节点属性实际用于模型中的单元，2）用户定义了初始状态，3）使用温度相关的应力-应变曲线（有效地使材料成为FGM），4）输入初始应力时，需要需要执行此操作。
