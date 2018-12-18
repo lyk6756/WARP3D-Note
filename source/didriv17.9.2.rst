@@ -236,7 +236,7 @@ call ``di_setup_J7_J8``::
     c * to enable subsequent computations of J(7) and J(8) terms.          *
     c *                                                                    *
     c * if computations not actually required, create small, dummy arrays  *
-    c * to simplify checking                                               *                                                                           *
+    c * to simplify checking                                               *
     c *                                                                    *
     c * get a stress work value (W) at all model nodes by extrapoaltion    *
     c * from element integration point values, then node averaging         *
